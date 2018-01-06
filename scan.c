@@ -120,9 +120,8 @@ static int scan_file(const char *path, const struct stat *stat, int flag, struct
   /* first encounter -> save
      otherwise display link */
   source_path = ht_search(hardlinks, devino, NULL);
-  if(!source_path) {
+  if(!source_path)
     ht_search(hardlinks, devino, strdup(path));
-  }
   else {
     free((void *)devino);
 
