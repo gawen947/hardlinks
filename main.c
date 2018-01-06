@@ -49,6 +49,7 @@ static void print_help(const char *name)
     { 'F', "follow",  "Follow symlinks."},
     { 'q', "quiet",   "Do not warning messages while scanning" },
     { 'f', "force",   "Do not abort on restore error" },
+    { 'i', "index",   "Hardlinks index file" },
     { 0, NULL, NULL }
   };
 
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
   const char *prog_name;
   const char *command;
   const char *path = NULL;
+  const char *index_file = NULL;
   int exit_status  = EXIT_FAILURE;
   int ftw_flags    = FTW_PHYS | FTW_MOUNT;
   int flags        = 0;
@@ -79,6 +81,7 @@ int main(int argc, char *argv[])
     { "follow", no_argument, NULL, 'F' },
     { "quiet", no_argument, NULL, 'q' },
     { "force", no_argument, NULL, 'f' },
+    { "index", required_argument, NULL, 'i' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -88,12 +91,15 @@ int main(int argc, char *argv[])
   prog_name = basename(argv[0]);
 
   while(1) {
-    int c = getopt_long(argc, argv, "hVvnFqf", opts, NULL);
+    int c = getopt_long(argc, argv, "hVvnFqfi:", opts, NULL);
 
     if(c == -1)
       break;
 
     switch(c) {
+    case 'i':
+      index_file = optarg;
+      break;
     case 'F':
       ftw_flags &= ~FTW_PHYS;
       break;
@@ -145,9 +151,9 @@ int main(int argc, char *argv[])
   }
 
   if(!strcmp(command, "scan"))
-    exit_status = scan(path, ftw_flags, flags);
+    exit_status = scan(index_file, path, ftw_flags, flags);
   else if(!strcmp(command, "restore"))
-    exit_status = restore(path, flags);
+    exit_status = restore(index_file, path, flags);
   else
     errx(EXIT_FAILURE, "unknown command (use 'scan' or 'restore')");
 

@@ -25,6 +25,6 @@
 #ifndef _SCAN_H_
 #define _SCAN_H_
 
-int scan(const char *path, int ftw_flags, int flags);
+int scan(const char *index_file, const char *path, int ftw_flags, int flags);
 
 #endif /* _SCAN_H_ */

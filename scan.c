@@ -118,7 +118,7 @@ static int scan_file(const char *path, const struct stat *stat, int flag, struct
   return 0;
 }
 
-int scan(const char *path, int ftw_flags, int flags)
+int scan(const char *index_file, const char *path, int ftw_flags, int flags)
 {
   int n;
 
@@ -135,7 +135,10 @@ int scan(const char *path, int ftw_flags, int flags)
   }
 
   /* re-open buffered stdout */
-  out = iobuf_dopen(STDOUT_FILENO);
+  if(!index_file)
+    out = iobuf_dopen(STDOUT_FILENO);
+  else
+    out = iobuf_open(index_file, O_WRONLY, 0);
   if(!out)
     errx(EXIT_FAILURE, "cannot re-open stdout");
 

@@ -25,6 +25,6 @@
 #ifndef _RESTORE_H_
 #define _RESTORE_H_
 
-int restore(const  char *path, int flags);
+int restore(const char *index_file, const char *path, int flags);
 
 #endif /* _RESTORE_H_ */

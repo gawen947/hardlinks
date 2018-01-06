@@ -76,7 +76,7 @@ static void restore_file(const char *path, const char *src, const char *dst)
   }
 }
 
-int restore(const char *path, int flags)
+int restore(const char *index_file, const char *path, int flags)
 {
   char read_buf[BUFFER_SIZE];
   char src_buf[BUFFER_SIZE];
@@ -93,7 +93,10 @@ int restore(const char *path, int flags)
     opt_force = 1;
 
   /* re-open buffered stdin */
-  in = iobuf_dopen(STDIN_FILENO);
+  if(!index_file)
+    in = iobuf_dopen(STDIN_FILENO);
+  else
+    in = iobuf_open(index_file, O_RDONLY, 0);
   if(!in)
     errx(EXIT_FAILURE, "cannot re-open stdin");
 
