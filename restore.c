@@ -37,7 +37,7 @@
 
 /* options */
 static int opt_verbose;
-
+static int opt_dryrun;
 
 static void restore_file(const char *path, const char *src, const char *dst)
 {
@@ -46,8 +46,10 @@ static void restore_file(const char *path, const char *src, const char *dst)
   if(opt_verbose)
     fprintf(stderr, "%s -> %s\n", src, dst);
 
-  xunlink(dst);
-  xlink(src, dst);
+  if(!opt_dryrun) {
+    xunlink(dst);
+    xlink(src, dst);
+  }
 }
 
 int restore(const char *path, int flags)
@@ -61,6 +63,8 @@ int restore(const char *path, int flags)
 
   if(flags & OPT_VERBOSE)
     opt_verbose = 1;
+  if(flags & OPT_DRYRUN)
+    opt_dryrun = 1;
 
   /* re-open buffered stdin */
   in = iobuf_dopen(STDIN_FILENO);

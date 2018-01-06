@@ -42,6 +42,7 @@ static void print_help(const char *name)
     { 'h', "help",    "Show this help message" },
     { 'V', "version", "Show version information" },
     { 'v', "verbose", "Be a bit more verbose" },
+    { 'n', "dry-run", "Perform a trial run with no changes made" },
 #ifdef COMMIT
     { 0,   "commit",  "Display commit information" },
 #endif /* COMMIT */
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
     { "help", no_argument, NULL, 'h' },
     { "version", no_argument, NULL, 'V' },
     { "verbose", no_argument, NULL, 'v' },
+    { "dry-run", no_argument, NULL, 'n' },
 #ifdef COMMIT
     { "commit", no_argument, NULL, OPT_COMMIT },
 #endif /* COMMIT */
@@ -86,7 +88,7 @@ int main(int argc, char *argv[])
   prog_name = basename(argv[0]);
 
   while(1) {
-    int c = getopt_long(argc, argv, "hVvFqf", opts, NULL);
+    int c = getopt_long(argc, argv, "hVvnFqf", opts, NULL);
 
     if(c == -1)
       break;
@@ -97,6 +99,9 @@ int main(int argc, char *argv[])
       break;
     case 'v':
       flags |= OPT_VERBOSE;
+      break;
+    case 'n':
+      flags |= OPT_DRYRUN;
       break;
     case 'q':
       flags |= OPT_QUIET;

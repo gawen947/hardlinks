@@ -26,10 +26,11 @@
 #define _MAIN_H_
 
 enum opt_flags {
-  OPT_QUIET   = 0x1, /* do not show permission denied messages while scanning */
-  OPT_FORCE   = 0x2, /* do not abort on restore error */
-  OPT_REMOVE  = 0x4, /* remove existing file to replace them with hardlink */
-  OPT_VERBOSE = 0x8, /* be a bit more verbose */
+  OPT_QUIET   = 0x1,  /* do not show permission denied messages while scanning */
+  OPT_FORCE   = 0x2,  /* do not abort on restore error */
+  OPT_REMOVE  = 0x4,  /* remove existing file to replace them with hardlink */
+  OPT_VERBOSE = 0x8,  /* be a bit more verbose */
+  OPT_DRYRUN  = 0x10, /* perform a trial run with no changes made */
 };
 
 #endif /* _MAIN_H_ */
