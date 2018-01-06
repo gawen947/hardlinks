@@ -38,6 +38,25 @@
 /* options */
 static int opt_verbose;
 static int opt_dryrun;
+static int opt_force;
+
+static void err_unlink(const char *dst)
+{
+#define ERR_UNLINK_MSG "%s: Cannot unlink"
+  if(opt_force)
+    warn(ERR_UNLINK_MSG, dst);
+  else
+    err(EXIT_FAILURE, ERR_UNLINK_MSG, dst);
+}
+
+static void err_link(const char *src, const char *dst)
+{
+#define ERR_LINK_MSG "%s -> %s: Cannot link"
+  if(opt_force)
+    warn(ERR_LINK_MSG, src, dst);
+  else
+    err(EXIT_FAILURE, ERR_LINK_MSG, src, dst);
+}
 
 static void restore_file(const char *path, const char *src, const char *dst)
 {
@@ -47,8 +66,13 @@ static void restore_file(const char *path, const char *src, const char *dst)
     fprintf(stderr, "%s -> %s\n", src, dst);
 
   if(!opt_dryrun) {
-    xunlink(dst);
-    xlink(src, dst);
+    int n = unlink(dst);
+    if(n < 0)
+      err_unlink(dst);
+
+    n = link(src, dst);
+    if(n < 0)
+      err_link(src, dst);
   }
 }
 
@@ -65,6 +89,8 @@ int restore(const char *path, int flags)
     opt_verbose = 1;
   if(flags & OPT_DRYRUN)
     opt_dryrun = 1;
+  if(flags & OPT_FORCE)
+    opt_force = 1;
 
   /* re-open buffered stdin */
   in = iobuf_dopen(STDIN_FILENO);
