@@ -77,6 +77,13 @@ static bool hardlink_cmp(const void *k1, const void *k2)
 
 static const struct hardlink * create_key(const struct stat *stat)
 {
+  /* FIXME:
+     It's a shame really.
+     st_ino could be used as an integer so life was easier back on a single device.
+     Along with the device, the hardlink key struct is around 8 bytes on FreeBSD.
+     But we cannot guarantee that it will stay so or that (void *) can hold 8 bytes.
+     So we've got to rely on dynamic allocation. We useless frees on almost half of the links.
+     Probably an dirty handcrafted garbage collecting memory allocator would do better. */
   struct hardlink *devino = xmalloc(sizeof(struct hardlink));
   *devino = (struct hardlink){ .st_dev = stat->st_dev, .st_ino = stat->st_ino };
   return devino;
