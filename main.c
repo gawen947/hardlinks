@@ -41,6 +41,7 @@ static void print_help(const char *name)
   struct opt_help messages[] = {
     { 'h', "help",    "Show this help message" },
     { 'V', "version", "Show version information" },
+    { 'v', "verbose", "Be a bit more verbose" },
 #ifdef COMMIT
     { 0,   "commit",  "Display commit information" },
 #endif /* COMMIT */
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
   struct option opts[] = {
     { "help", no_argument, NULL, 'h' },
     { "version", no_argument, NULL, 'V' },
+    { "verbose", no_argument, NULL, 'v' },
 #ifdef COMMIT
     { "commit", no_argument, NULL, OPT_COMMIT },
 #endif /* COMMIT */
@@ -84,7 +86,7 @@ int main(int argc, char *argv[])
   prog_name = basename(argv[0]);
 
   while(1) {
-    int c = getopt_long(argc, argv, "hVFqf", opts, NULL);
+    int c = getopt_long(argc, argv, "hVvFqf", opts, NULL);
 
     if(c == -1)
       break;
@@ -92,6 +94,9 @@ int main(int argc, char *argv[])
     switch(c) {
     case 'F':
       ftw_flags &= ~FTW_PHYS;
+      break;
+    case 'v':
+      flags |= OPT_VERBOSE;
       break;
     case 'q':
       flags |= OPT_QUIET;

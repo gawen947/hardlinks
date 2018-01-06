@@ -22,18 +22,30 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
 
 #include "string-utils.h"
 #include "safe-call.h"
+#include "common.h"
 #include "iobuf.h"
+#include "main.h"
 
 #define BUFFER_SIZE (PATH_MAX * 2 + 6) /* "<src>" "<dst>"\n */
 
-static void restore_file(const char *path, const char *src, const char *dst, int flags)
+/* options */
+static int opt_verbose;
+
+
+static void restore_file(const char *path, const char *src, const char *dst)
 {
+  UNUSED(path);
+
+  if(opt_verbose)
+    fprintf(stderr, "%s -> %s\n", src, dst);
+
   xunlink(dst);
   xlink(src, dst);
 }
@@ -46,6 +58,9 @@ int restore(const char *path, int flags)
   const char *s;
   iofile_t in;
   ssize_t  n;
+
+  if(flags & OPT_VERBOSE)
+    opt_verbose = 1;
 
   /* re-open buffered stdin */
   in = iobuf_dopen(STDIN_FILENO);
@@ -70,7 +85,7 @@ int restore(const char *path, int flags)
     if(*s != '\0')
       warnx("'%s': Garbage after line", read_buf);
 
-    restore_file(path, src_buf, dst_buf, flags);
+    restore_file(path, src_buf, dst_buf);
   }
 
   iobuf_close(in);
