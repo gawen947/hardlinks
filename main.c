@@ -50,6 +50,7 @@ static void print_help(const char *name)
     { 'q', "quiet",   "Do not warning messages while scanning" },
     { 'f', "force",   "Do not abort on restore error" },
     { 'i', "index",   "Hardlinks index file" },
+    { 'm', "mount",   "Do not cross mount point" },
     { 0, NULL, NULL }
   };
 
@@ -63,7 +64,7 @@ int main(int argc, char *argv[])
   const char *path = NULL;
   const char *index_file = NULL;
   int exit_status  = EXIT_FAILURE;
-  int ftw_flags    = FTW_PHYS | FTW_MOUNT;
+  int ftw_flags    = FTW_PHYS;
   int flags        = 0;
 
   enum opt {
@@ -82,6 +83,7 @@ int main(int argc, char *argv[])
     { "quiet", no_argument, NULL, 'q' },
     { "force", no_argument, NULL, 'f' },
     { "index", required_argument, NULL, 'i' },
+    { "mount", no_argument, NULL, 'm' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -91,7 +93,7 @@ int main(int argc, char *argv[])
   prog_name = basename(argv[0]);
 
   while(1) {
-    int c = getopt_long(argc, argv, "hVvnFqfi:", opts, NULL);
+    int c = getopt_long(argc, argv, "hVvnFqfi:m", opts, NULL);
 
     if(c == -1)
       break;
@@ -102,6 +104,9 @@ int main(int argc, char *argv[])
       break;
     case 'F':
       ftw_flags &= ~FTW_PHYS;
+      break;
+    case 'm':
+      ftw_flags |= FTW_MOUNT;
       break;
     case 'v':
       flags |= OPT_VERBOSE;
