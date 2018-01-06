@@ -39,6 +39,11 @@
 
 #define HT_SIZE 8092
 
+struct hardlink {
+  __dev_t st_dev; /* hardlink inode's device */
+  ino_t   st_ino; /* hardlink inode's number */
+};
+
 /* hardlinks hashtable with inode
    as key and original path as data. */
 static htable_t hardlinks;
@@ -49,30 +54,39 @@ static iofile_t out;
 /* options */
 static int opt_quiet;
 
-/* Robert Jenkins's integer hash */
-uint32_t jenkins_hash(const void *key)
+/* Dan Bernstein's hash */
+uint32_t djb2_hardlink_hash(const void *key)
 {
-  register uint32_t a = (unsigned long long)key;
+  const char *o = key;
+  register uint32_t hash = 5381;
+  unsigned int i;
 
-  a = (a+0x7ed55d16) + (a<<12);
-  a = (a^0xc761c23c) ^ (a>>19);
-  a = (a+0x165667b1) + (a<<5);
-  a = (a+0xd3a2646c) ^ (a<<9);
-  a = (a+0xfd7046c5) + (a<<3);
-  a = (a^0xb55a4f09) ^ (a>>16);
+  for(i = 0 ; i < sizeof(sizeof(struct hardlink)); i++)
+    hash = ((hash << 5) + hash) + o[i]; /* hash * 33 + c */
 
-  return a;
+  return hash;
 }
 
-static bool int_cmp(const void *k1, const void *k2)
+static bool hardlink_cmp(const void *k1, const void *k2)
 {
-  return k1 == k2;
+  const struct hardlink *hl_k1 = k1;
+  const struct hardlink *hl_k2 = k2;
+
+  return hl_k1->st_ino == hl_k2->st_ino;
+}
+
+static const struct hardlink * create_key(const struct stat *stat)
+{
+  struct hardlink *devino = xmalloc(sizeof(struct hardlink));
+  *devino = (struct hardlink){ .st_dev = stat->st_dev, .st_ino = stat->st_ino };
+  return devino;
 }
 
 static int scan_file(const char *path, const struct stat *stat, int flag, struct FTW *ftw)
 {
   static char escaped_buffer[PATH_MAX * 2 + 3]; /* escaping + "" + \0 */
   const char *source_path;
+  const struct hardlink *devino;
   int n;
 
   UNUSED(ftw);
@@ -100,12 +114,18 @@ static int scan_file(const char *path, const struct stat *stat, int flag, struct
   if(stat->st_nlink < 2)
     return 0;
 
+  /* create hardlink key */
+  devino = create_key(stat);
+
   /* first encounter -> save
      otherwise display link */
-  source_path = ht_search(hardlinks, HT_INT(stat->st_ino), NULL);
-  if(!source_path)
-    ht_search(hardlinks, HT_INT(stat->st_ino), strdup(path));
+  source_path = ht_search(hardlinks, devino, NULL);
+  if(!source_path) {
+    ht_search(hardlinks, devino, strdup(path));
+  }
   else {
+    free((void *)devino);
+
     n = stresc(escaped_buffer, source_path);
     iobuf_write(out, escaped_buffer, n);
     iobuf_putc(' ', out);
@@ -145,8 +165,8 @@ int scan(const char *index_file, const char *path, int ftw_flags, int flags)
   /* FIXME: do we really need the jenkins hash?
             wouldn't anything simpler also do? */
   hardlinks = ht_create(HT_SIZE,
-                        jenkins_hash,
-                        int_cmp,
+                        djb2_hardlink_hash,
+                        hardlink_cmp,
                         free);
   if(!hardlinks)
     errx(EXIT_FAILURE, "cannot create htable");
