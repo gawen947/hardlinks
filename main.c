@@ -22,6 +22,10 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __linux__
+# define _XOPEN_SOURCE 500
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>

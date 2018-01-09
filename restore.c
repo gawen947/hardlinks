@@ -27,6 +27,10 @@
 #include <string.h>
 #include <err.h>
 
+#ifdef __linux__
+# include <linux/limits.h>
+#endif
+
 #include "string-utils.h"
 #include "safe-call.h"
 #include "common.h"
