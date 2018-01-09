@@ -38,11 +38,22 @@
 #include "scan.h"
 
 #define HT_SIZE 8092
+#define KEY_ALLOC_BLOCK_SIZE 1024
 
 struct hardlink {
   __dev_t st_dev; /* hardlink inode's device */
   ino_t   st_ino; /* hardlink inode's number */
 };
+
+/* We use our own memory allocator for the keys
+   so we don't rely too much on malloc/free. */
+struct key_alloc_block {
+  struct key_alloc_block *next;
+  struct hardlink block[KEY_ALLOC_BLOCK_SIZE];
+};
+
+static struct key_alloc_block *alloc_head;
+static int alloc_idx;
 
 /* hardlinks hashtable with inode
    as key and original path as data. */
@@ -75,18 +86,41 @@ static bool hardlink_cmp(const void *k1, const void *k2)
   return hl_k1->st_ino == hl_k2->st_ino;
 }
 
-static const struct hardlink * create_key(const struct stat *stat)
+static inline const struct hardlink * create_temporary_key(const struct stat *stat)
 {
-  /* FIXME:
-     It's a shame really.
-     st_ino could be used as an integer so life was easier back on a single device.
-     Along with the device, the hardlink key struct is around 8 bytes on FreeBSD.
-     But we cannot guarantee that it will stay so or that (void *) can hold 8 bytes.
-     So we've got to rely on dynamic allocation. We useless frees on almost half of the links.
-     Probably an dirty handcrafted garbage collecting memory allocator would do better. */
-  struct hardlink *devino = xmalloc(sizeof(struct hardlink));
-  *devino = (struct hardlink){ .st_dev = stat->st_dev, .st_ino = stat->st_ino };
-  return devino;
+  alloc_head->block[alloc_idx] = (struct hardlink){ .st_dev = stat->st_dev, .st_ino = stat->st_ino };
+  return &alloc_head->block[alloc_idx];
+}
+
+static inline void commit_key(void)
+{
+  if(alloc_idx < KEY_ALLOC_BLOCK_SIZE)
+    alloc_idx++;
+  else {
+    struct key_alloc_block *alloc_new = xmalloc(sizeof(struct key_alloc_block));
+
+    alloc_new->next = alloc_head;
+    alloc_head     = alloc_new;
+    alloc_idx      = 0;
+  }
+}
+
+static void init_keys(void)
+{
+  alloc_head      = xmalloc(sizeof(struct key_alloc_block));
+  alloc_head->next = NULL;
+  alloc_idx       = 0;
+}
+
+static void free_keys(void)
+{
+  struct key_alloc_block *alloc;
+
+  while(alloc_head) {
+    alloc      = alloc_head;
+    alloc_head = alloc_head->next;
+    free(alloc);
+  }
 }
 
 static int scan_file(const char *path, const struct stat *stat, int flag, struct FTW *ftw)
@@ -122,16 +156,16 @@ static int scan_file(const char *path, const struct stat *stat, int flag, struct
     return 0;
 
   /* create hardlink key */
-  devino = create_key(stat);
+  devino = create_temporary_key(stat);
 
   /* first encounter -> save
      otherwise display link */
   source_path = ht_search(hardlinks, devino, NULL);
-  if(!source_path)
+  if(!source_path) {
     ht_search(hardlinks, devino, strdup(path));
+    commit_key();
+  }
   else {
-    free((void *)devino);
-
     n = stresc(escaped_buffer, source_path);
     iobuf_write(out, escaped_buffer, n);
     iobuf_putc(' ', out);
@@ -168,8 +202,9 @@ int scan(const char *index_file, const char *path, int ftw_flags, int flags)
   if(!out)
     errx(EXIT_FAILURE, "cannot re-open stdout");
 
-  /* FIXME: do we really need the jenkins hash?
-            wouldn't anything simpler also do? */
+  /* init keys allocator */
+  init_keys();
+
   hardlinks = ht_create(HT_SIZE,
                         djb2_hardlink_hash,
                         hardlink_cmp,
@@ -183,6 +218,7 @@ int scan(const char *index_file, const char *path, int ftw_flags, int flags)
 
   iobuf_close(out);
   ht_destroy(hardlinks);
+  free_keys();
 
   return 0;
 }
