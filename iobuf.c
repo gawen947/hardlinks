@@ -42,8 +42,8 @@
 struct iofile {
   int fd;
 
-  int write_size;
-  int read_size;
+  unsigned int write_size;
+  unsigned int read_size;
   char *write_buf;
   char *read_buf;
   char buf[IOBUF_SIZE * 2];
@@ -115,7 +115,7 @@ iofile_t iobuf_open(const char *pathname, int flags, mode_t mode)
 
 ssize_t iobuf_write(iofile_t file, const void *buf, size_t count)
 {
-  if(count > IOBUF_SIZE - file->write_size) {
+  if(count > (IOBUF_SIZE - file->write_size)) {
     ssize_t partial_write;
 
     partial_write = iobuf_flush(file);
@@ -140,6 +140,7 @@ ssize_t iobuf_write(iofile_t file, const void *buf, size_t count)
 
 ssize_t iobuf_read(iofile_t file, void *buf, size_t count)
 {
+  unsigned char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
   ssize_t ret = count;
 
   do {
@@ -152,7 +153,7 @@ ssize_t iobuf_read(iofile_t file, void *buf, size_t count)
     file->read_buf  += partial_read;
     file->read_size -= partial_read;
     count           -= partial_read;
-    buf             += partial_read;
+    cbuf            += partial_read;
   } while(count);
 
   return ret;
@@ -209,6 +210,7 @@ int iobuf_getc(iofile_t file)
 
 ssize_t iobuf_gets(iofile_t file, void *buf, size_t count)
 {
+  unsigned char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
   ssize_t ret = 0;
 
   do {
@@ -230,7 +232,7 @@ ssize_t iobuf_gets(iofile_t file, void *buf, size_t count)
     file->read_buf  += partial_read;
     file->read_size -= partial_read;
     count          -= partial_read;
-    buf            += partial_read;
+    cbuf           += partial_read;
     ret            += partial_read;
   } while(count);
 
