@@ -32,6 +32,13 @@
 /* Equivalent of the Unix basename command. */
 const char * basename(const char *s);
 
+/* Remove trailing characters from a string.
+   Size must be given in strlen() term.
+   The function returns the new size of the string
+   also in strlen() term. */
+unsigned int strip(char *buf, const char *remove, unsigned int size);
+unsigned int strip_space(char *buf, unsigned int size);
+
 /* Put double quotes around a string and escape any " or \ character with \", \\.
    Returns the length of the escaped string. */
 unsigned int stresc(char *buf, const char *str);

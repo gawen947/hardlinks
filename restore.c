@@ -108,8 +108,7 @@ int restore(const char *index_file, const char *path, int flags)
     if(n < 0)
       err(EXIT_FAILURE, "read error");
 
-    /* strip newline */
-    read_buf[n - 1] = '\0';
+    strip_gets_newline(read_buf, n);
 
     /* all link are in the format: "<src>" "<dst>" */
     s = strunesc(src_buf, read_buf);

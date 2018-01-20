@@ -237,7 +237,7 @@ ssize_t iobuf_gets(iofile_t file, void *buf, size_t count)
   } while(count);
 
   /* mark EOL */
-  *(char *)buf = '\0';
+  *cbuf = '\0';
 
   return ret;
 }

@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <err.h>
 
 const char * basename(const char *s)
@@ -31,6 +32,43 @@ const char * basename(const char *s)
   const char *base = (const char *)strrchr(s, '/');
   base = base ? (base + 1) : s;
   return base;
+}
+
+unsigned int strip(char *buf, const char *remove, unsigned int size)
+{
+  if(!size)
+    return 0;
+
+  while(size--) {
+    const char *r;
+
+    for(r = remove ; *r ; r++) {
+      if(buf[size] == *r) {
+        buf[size] = '\0';
+        break;
+      }
+    }
+
+    if(*r == '\0')
+      break;
+  }
+
+  return size + 1;
+}
+
+unsigned int strip_space(char *buf, unsigned int size)
+{
+  if(!size)
+    return 0;
+
+  while(size--) {
+    if(isspace(buf[size]))
+      buf[size] = '\0';
+    else
+      break;
+  }
+
+  return size + 1;
 }
 
 unsigned int stresc(char *buf, const char *str)

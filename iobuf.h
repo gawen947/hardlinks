@@ -33,6 +33,13 @@
 #define IOBUF_SIZE 65536
 #define GETC_EOF   UCHAR_MAX + 1
 
+/* Remove the single trailing \n
+   from a line received from iobuf_gets(). */
+#define strip_gets_newline(buf, size) do { \
+    if(buf[size-1] == '\n')                \
+      buf[size-1] = '\0';                  \
+  } while(0)
+
 /* TODO: Define OFF_T_MIN and OFF_T_MAX. */
 
 #define MIN_LSEEK_OFFSET OFF_T_MIN + IOBUF_SIZE
