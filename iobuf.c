@@ -140,7 +140,7 @@ ssize_t iobuf_write(iofile_t file, const void *buf, size_t count)
 
 ssize_t iobuf_read(iofile_t file, void *buf, size_t count)
 {
-  unsigned char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
+  char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
   ssize_t ret = count;
 
   do {
@@ -149,7 +149,7 @@ ssize_t iobuf_read(iofile_t file, void *buf, size_t count)
       return partial_read;
 
     partial_read = MIN(count, file->read_size);
-    memcpy(buf, file->read_buf, partial_read);
+    memcpy(cbuf, file->read_buf, partial_read);
     file->read_buf  += partial_read;
     file->read_size -= partial_read;
     count           -= partial_read;
@@ -210,7 +210,7 @@ int iobuf_getc(iofile_t file)
 
 ssize_t iobuf_gets(iofile_t file, void *buf, size_t count)
 {
-  unsigned char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
+  char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
   ssize_t ret = 0;
 
   do {
@@ -227,7 +227,7 @@ ssize_t iobuf_gets(iofile_t file, void *buf, size_t count)
       count         = partial_read; /* will be zero and break */
     }
 
-    memcpy(buf, file->read_buf, partial_read);
+    memcpy(cbuf, file->read_buf, partial_read);
 
     file->read_buf  += partial_read;
     file->read_size -= partial_read;
