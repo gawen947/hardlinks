@@ -94,7 +94,9 @@ int iobuf_getc(iofile_t file);
    the target buffer. Negative return values indicate an error.
    A return value of zero indicates than EOF has been reached.
    The buffer must always be at least one byte long because
-   it is always marked with the null terminating character. */
+   it is always marked with the null terminating character.
+   The value returned is the length of the string placed in
+   the buffer (not including terminal '\0'). */
 ssize_t iobuf_gets(iofile_t file, void *buf, size_t count);
 
 /* The iobuf_lseek() function repositions the offset of the open stream

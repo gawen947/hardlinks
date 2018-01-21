@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2016, David Hauweele <david@hauweele.net>
+/* Copyright (c) 2012-2018, David Hauweele <david@hauweele.net>
    All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
@@ -140,12 +140,13 @@ ssize_t iobuf_write(iofile_t file, const void *buf, size_t count)
 
 ssize_t iobuf_read(iofile_t file, void *buf, size_t count)
 {
-  char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
-  ssize_t ret = count;
+  char *cbuf = buf;
 
   do {
     ssize_t partial_read = fill_buffer(file);
-    if(partial_read <= 0)
+    if(partial_read == 0)
+      goto EXIT;
+    else if(partial_read < 0)
       return partial_read;
 
     partial_read = MIN(count, file->read_size);
@@ -156,7 +157,8 @@ ssize_t iobuf_read(iofile_t file, void *buf, size_t count)
     cbuf            += partial_read;
   } while(count);
 
-  return ret;
+EXIT:
+  return cbuf - (char *)buf;
 }
 
 int iobuf_close(iofile_t file)
@@ -210,13 +212,16 @@ int iobuf_getc(iofile_t file)
 
 ssize_t iobuf_gets(iofile_t file, void *buf, size_t count)
 {
-  char *cbuf = buf; /* just to avoid a warning about pointer arithmetic */
-  ssize_t ret = 0;
+  char *cbuf = buf;
+
+  count--;
 
   do {
     char *eol;
     ssize_t partial_read = fill_buffer(file);
-    if(partial_read <= 0)
+    if(partial_read == 0)
+      goto EXIT;
+    else if(partial_read < 0)
       return partial_read;
 
     partial_read = MIN(count, file->read_size);
@@ -231,15 +236,15 @@ ssize_t iobuf_gets(iofile_t file, void *buf, size_t count)
 
     file->read_buf  += partial_read;
     file->read_size -= partial_read;
-    count          -= partial_read;
-    cbuf           += partial_read;
-    ret            += partial_read;
+    count           -= partial_read;
+    cbuf            += partial_read;
   } while(count);
 
+EXIT:
   /* mark EOL */
   *cbuf = '\0';
 
-  return ret;
+  return cbuf - (char *)buf;
 }
 
 off_t iobuf_lseek(iofile_t file, off_t offset, int whence)
