@@ -33,11 +33,12 @@
 #include <err.h>
 #include <ftw.h>
 
-#include "string-utils.h"
+#include <gawen/string.h>
+#include <gawen/help.h>
+
 #include "version.h"
 #include "restore.h"
 #include "scan.h"
-#include "help.h"
 #include "main.h"
 
 static void print_help(const char *name)

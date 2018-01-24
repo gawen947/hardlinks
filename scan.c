@@ -33,11 +33,12 @@
 #include <err.h>
 #include <assert.h>
 
-#include "string-utils.h"
-#include "safe-call.h"
-#include "common.h"
-#include "htable.h"
-#include "iobuf.h"
+#include <gawen/safe-call.h>
+#include <gawen/string.h>
+#include <gawen/htable.h>
+#include <gawen/common.h>
+#include <gawen/iobuf.h>
+
 #include "main.h"
 #include "scan.h"
 

@@ -31,10 +31,11 @@
 # include <linux/limits.h>
 #endif
 
-#include "string-utils.h"
-#include "safe-call.h"
-#include "common.h"
-#include "iobuf.h"
+#include <gawen/string.h>
+#include <gawen/safe-call.h>
+#include <gawen/common.h>
+#include <gawen/iobuf.h>
+
 #include "main.h"
 
 #define BUFFER_SIZE (PATH_MAX * 2 + 6) /* "<src>" "<dst>"\n */
