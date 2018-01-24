@@ -113,11 +113,15 @@ int restore(const char *index_file, const char *path, int flags)
 
     /* all link are in the format: "<src>" "<dst>" */
     s = strunesc(src_buf, read_buf);
+    if(!s)
+      errx(EXIT_FAILURE, "'%s': Invalid line", read_buf);
 
     if(*s++ != ' ')
       errx(EXIT_FAILURE, "'%s': Invalid line", read_buf);
 
     s = strunesc(dst_buf, s);
+    if(!s)
+      errx(EXIT_FAILURE, "'%s': Invalid line", read_buf);
 
     if(*s != '\0')
       warnx("'%s': Garbage after line", read_buf);
